@@ -1,0 +1,13 @@
+int pot = 34;
+
+void setup() {
+  Serial.begin(115200);
+}
+
+void loop() {
+  int valor = analogRead(pot);
+  int porcentagem = map(valor, 0, 4095, 0, 100);
+
+  Serial.println(porcentagem);
+  delay(200);
+}
