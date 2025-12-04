@@ -1,0 +1,20 @@
+#include <Servo.h>
+
+Servo motor;
+int pot = 34;   // ADC do ESP32
+int servoPin = 15;
+
+void setup() {
+  Serial.begin(115200);
+  motor.attach(servoPin);
+}
+
+void loop() {
+  int valor = analogRead(pot);
+  int angulo = map(valor, 0, 4095, 0, 180);
+
+  motor.write(angulo);
+
+  Serial.println(angulo);
+  delay(20);
+}
