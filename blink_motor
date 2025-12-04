@@ -1,0 +1,12 @@
+int motor = 5;
+
+void setup() {
+  pinMode(motor, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(motor, HIGH); // Liga motor
+  delay(500);
+  digitalWrite(motor, LOW);  // Desliga motor
+  delay(500);
+}
