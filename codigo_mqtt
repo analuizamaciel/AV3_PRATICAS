@@ -1,0 +1,85 @@
+#include <WiFi.h>
+#include <PubSubClient.h>
+
+// ---- CONFIG WIFI ----
+const char* ssid = "SEU_WIFI";
+const char* password = "SUA_SENHA";
+
+// ---- CONFIG MQTT ----
+const char* mqttServer = "broker.hivemq.com"; 
+const int mqttPort = 1883;
+const char* mqttTopicPub = "duda/teste/pub";
+const char* mqttTopicSub = "duda/teste/sub";
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+// ---- CALLBACK PARA MENSAGENS RECEBIDAS ----
+void callback(char* topic, byte* message, unsigned int length) {
+  Serial.print("\nMensagem recebida em ");
+  Serial.print(topic);
+  Serial.print(": ");
+
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)message[i]);
+  }
+  Serial.println();
+}
+
+// ---- CONECTAR NO MQTT ----
+void reconnectMQTT() {
+  while (!client.connected()) {
+    Serial.print("Conectando ao MQTT... ");
+    if (client.connect("ESP32-Duda")) {
+      Serial.println("Conectado!");
+
+      client.subscribe(mqttTopicSub);
+
+    } else {
+      Serial.print("Falhou, rc=");
+      Serial.println(client.state());
+      delay(2000);
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  // ---- WIFI ----
+  WiFi.begin(ssid, password);
+  Serial.print("Conectando ao WiFi...");
+
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(400);
+  }
+
+  Serial.println("\nWiFi conectado!");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
+
+  // ---- MQTT ----
+  client.setServer(mqttServer, mqttPort);
+  client.setCallback(callback);
+}
+
+void loop() {
+  if (!client.connected()) {
+    reconnectMQTT();
+  }
+
+  client.loop();
+
+  // ---- PUBLICAR A CADA 3s ----
+  static unsigned long lastMsg = 0;
+  if (millis() - lastMsg > 3000) {
+    lastMsg = millis();
+
+    String msg = "Olá da Duda (" + WiFi.localIP().toString() + ")";
+    client.publish(mqttTopicPub, msg.c_str());
+
+    Serial.print("Publicado: ");
+    Serial.println(msg);
+  }
+}
