@@ -1,0 +1,49 @@
+#include "DHT.h"
+
+DHT dht(4, DHT22);
+
+int ldr = 34;
+int ledR = 2;
+int botao = 12;
+
+bool sistemaAtivo = true;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(ledR, OUTPUT);
+  pinMode(botao, INPUT_PULLUP);
+  dht.begin();
+}
+
+void loop() {
+
+  // Alterna o estado do sistema no clique
+  if (digitalRead(botao) == LOW) {
+    sistemaAtivo = !sistemaAtivo;
+    delay(300);
+  }
+
+  if (sistemaAtivo) {
+    float t = dht.readTemperature();
+    float h = dht.readHumidity();
+    int luz = analogRead(ldr);
+
+    Serial.print("Temp: "); Serial.print(t);
+    Serial.print("  Umid: "); Serial.print(h);
+    Serial.print("  LDR: "); Serial.println(luz);
+
+    bool critico = false;
+
+    if (t > 30) critico = true;
+    if (h < 20) critico = true;
+    if (luz < 1500) critico = true;
+
+    digitalWrite(ledR, critico ? HIGH : LOW);
+
+  } else {
+    digitalWrite(ledR, LOW);
+    Serial.println("Sistema desligado");
+  }
+
+  delay(300);
+}
